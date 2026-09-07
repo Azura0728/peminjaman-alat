@@ -40,7 +40,12 @@
                 <tbody class="text-gray-700 text-sm">
                     @forelse($peminjamanAktif as $item)
                     <tr class="hover:bg-gray-50 transition align-top">
-                        <td class="py-3 px-4 border-b font-medium">{{ $item->user->name ?? '-' }}</td>
+                        <td class="py-3 px-4 border-b font-medium">
+                            {{ $item->user->name ?? '-' }}
+                            @if($item->permintaan_kembali)
+                                <span class="ml-1 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">Diminta kembali</span>
+                            @endif
+                        </td>
                         <td class="py-3 px-4 border-b">
                             @foreach($item->detailPinjams as $d)
                                 <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">{{ $d->alat->nama_alat ?? '-' }} ({{ $d->jumlah }} pcs)</span>

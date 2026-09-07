@@ -7,6 +7,14 @@
 
     <!-- Memuat Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    @media print {
+        .no-print { display: none !important; }
+        aside, header { display: none !important; }
+        main { padding: 0 !important; }
+        .print-header { display: block !important; }
+    }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
@@ -68,14 +76,24 @@
 
                 {{-- ================= MENU KHUSUS PETUGAS ================= --}}
                 @if(auth()->user()->role === 'petugas')
+                    <a href="{{ route('petugas.dashboard') }}"
+                    class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.dashboard') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                        Dashboard
+                    </a>
+
                     <a href="{{ route('petugas.peminjaman.index') }}"
-                       class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.peminjaman*') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                    class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.peminjaman*') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                         Persetujuan Peminjaman
                     </a>
 
                     <a href="{{ route('petugas.pengembalian.index') }}"
-                        class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.pengembalian*') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                    class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.pengembalian*') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                         Pemantauan Pengembalian
+                    </a>
+
+                    <a href="{{ route('petugas.laporan.index') }}"
+                    class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.laporan*') ? 'bg-gray-800 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                        Cetak Laporan
                     </a>
                 @endif
                 

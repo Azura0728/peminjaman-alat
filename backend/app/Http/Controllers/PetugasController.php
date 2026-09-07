@@ -146,4 +146,47 @@ class PetugasController extends Controller
 
     return view('petugas.pengembalian.index', compact('peminjamanAktif', 'riwayatPengembalian', 'searchAktif', 'searchRiwayat'));
 }
+
+// Dashboard ringkasan untuk petugas
+    public function dashboard()
+    {
+        $totalMenunggu = Peminjaman::where('status', 'diajukan')->count();
+        $totalDipinjam = Peminjaman::where('status', 'dipinjam')->count();
+
+        $totalPengembalianBulanIni = Pengembalian::whereMonth('tgl_kembali', now()->month)
+            ->whereYear('tgl_kembali', now()->year)
+            ->count();
+
+        $totalDendaBulanIni = Pengembalian::whereMonth('tgl_kembali', now()->month)
+            ->whereYear('tgl_kembali', now()->year)
+            ->sum('denda');
+
+        $peminjamanTerbaru = Peminjaman::with(['user', 'detailPinjams.alat'])
+            ->where('status', 'diajukan')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('petugas.dashboard', compact(
+            'totalMenunggu', 'totalDipinjam', 'totalPengembalianBulanIni', 'totalDendaBulanIni', 'peminjamanTerbaru'
+        ));
+    }
+
+    // Laporan transaksi pengembalian (filter periode + siap cetak)
+    public function laporan(Request $request)
+    {
+        $tglAwal = $request->input('tgl_awal');
+        $tglAkhir = $request->input('tgl_akhir');
+
+        $query = Pengembalian::with(['peminjaman.user', 'peminjaman.detailPinjams.alat', 'petugas']);
+
+        if ($tglAwal && $tglAkhir) {
+            $query->whereBetween('tgl_kembali', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+        }
+
+        $laporan = $query->latest()->get();
+        $totalDenda = $laporan->sum('denda');
+
+        return view('petugas.laporan.index', compact('laporan', 'tglAwal', 'tglAkhir', 'totalDenda'));
+    }
 }

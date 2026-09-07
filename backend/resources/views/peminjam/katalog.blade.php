@@ -1,112 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Alat - Peminjam</title>
+@extends('layouts.peminjam')
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+@section('title', 'Katalog Alat')
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">Panel Peminjam</a>
+@section('content')
+<h2 class="text-lg font-bold text-gray-800 mb-4">Katalog Alat Tersedia</h2>
 
-            <div class="d-flex">
-                <a href="{{ route('peminjam.riwayat') }}" class="btn btn-outline-light btn-sm me-2">
-                    Riwayat Pinjam
-                </a>
-
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-light btn-sm text-primary">
-                        Logout
-                    </button>
-                </form>
-            </div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    @forelse($alats as $alat)
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition flex flex-col">
+        <div class="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+            @if($alat->gambar)
+                <img src="{{ asset($alat->gambar) }}" alt="{{ $alat->nama_alat }}" class="w-full h-full object-cover">
+            @else
+                <span class="text-4xl">🛠️</span>
+            @endif
         </div>
-    </nav>
-
-    <div class="container">
-
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-
-        <h3 class="mb-3">Katalog Alat Tersedia</h3>
-
-        <form action="{{ route('peminjam.peminjaman.ajukan') }}" method="POST">
-            @csrf
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-
-                    <div class="mb-3">
-                        <label class="form-label">Rencana Tanggal Kembali</label>
-                        <input type="date"
-                               name="tgl_kembali_plan"
-                               class="form-control"
-                               required>
-                    </div>
-
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th width="50">Pilih</th>
-                                <th>Nama Alat</th>
-                                <th>Kategori</th>
-                                <th>Stok Tersedia</th>
-                                <th width="150">Jumlah Pinjam</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @forelse($alats as $index => $alat)
-                                <tr>
-                                    <td class="text-center">
-                                        <input type="checkbox"
-                                               name="alat_id[]"
-                                               value="{{ $alat->id }}"
-                                               class="form-check-input">
-                                    </td>
-
-                                    <td>{{ $alat->nama_alat }}</td>
-                                    <td>{{ $alat->kategori->nama_kategori ?? '-' }}</td>
-                                    <td>{{ $alat->stok }}</td>
-
-                                    <td>
-                                        <input type="number"
-                                               name="jumlah[]"
-                                               class="form-control form-control-sm"
-                                               value="1"
-                                               min="1"
-                                               max="{{ $alat->stok }}">
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">
-                                        Tidak ada alat yang tersedia saat ini.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    <button type="submit" class="btn btn-primary">
-                        Ajukan Peminjaman
-                    </button>
-
-                </div>
+        <div class="p-3 flex-1 flex flex-col">
+            <p class="text-sm font-semibold text-gray-800 line-clamp-2">{{ $alat->nama_alat }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ $alat->kategori->nama_kategori ?? '-' }}</p>
+            <div class="mt-2 flex items-center justify-between">
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Stok: {{ $alat->stok }}</span>
             </div>
-        </form>
-
+            <button type="button" onclick="document.getElementById('modal-{{ $alat->id }}').classList.remove('hidden')"
+                class="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 rounded-lg transition">
+                Ajukan Pinjam
+            </button>
+        </div>
     </div>
 
-</body>
-</html>
+    <!-- Modal Ajukan Peminjaman -->
+    <div id="modal-{{ $alat->id }}" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h4 class="font-bold text-gray-800 mb-1">{{ $alat->nama_alat }}</h4>
+            <p class="text-xs text-gray-500 mb-4">Stok tersedia: {{ $alat->stok }}</p>
+            <form action="{{ route('peminjam.ajukan') }}" method="POST">
+                @csrf
+                <input type="hidden" name="alat_id" value="{{ $alat->id }}">
+
+                <div class="mb-3">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah</label>
+                    <input type="number" name="jumlah" value="1" min="1" max="{{ $alat->stok }}" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Rencana Tanggal Kembali</label>
+                    <input type="date" name="tgl_kembali_plan" min="{{ now()->addDay()->format('Y-m-d') }}" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('modal-{{ $alat->id }}').classList.add('hidden')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg text-sm">Batal</button>
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Ajukan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @empty
+    <p class="col-span-full text-center text-gray-500 py-10">Tidak ada alat yang tersedia saat ini.</p>
+    @endforelse
+</div>
+
+<div class="mt-6">{{ $alats->links() }}</div>
+@endsection

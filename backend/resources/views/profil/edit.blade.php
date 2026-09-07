@@ -1,9 +1,16 @@
-@extends('layouts.app')
+@extends(auth()->user()->role === 'peminjam' ? 'layouts.peminjam' : 'layouts.app')
 
 @section('title', 'Profil Saya')
 @section('header-title', 'Profil Saya')
 
 @section('content')
+<div class="mb-4">
+    <a href="{{ auth()->user()->role === 'peminjam' ? route('peminjam.katalog') : (auth()->user()->role === 'admin' ? route('admin.dashboard') : route('petugas.dashboard')) }}"
+        class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition">
+        <span aria-hidden="true">&larr;</span>
+        Kembali
+    </a>
+</div>
 <div class="max-w-xl bg-white rounded-lg shadow-sm border border-gray-200 p-6">
     @if(session('success'))
         <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg shadow-sm text-sm">{{ session('success') }}</div>

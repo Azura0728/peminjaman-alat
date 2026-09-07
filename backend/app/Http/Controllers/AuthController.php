@@ -30,7 +30,7 @@ class AuthController extends Controller
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'petugas') {
-                return redirect()->route('petugas.peminjaman.index');
+                return redirect()->route('petugas.dashboard');
             } elseif ($user->role === 'peminjam') {
                 return redirect()->route('peminjam.katalog');
             }
