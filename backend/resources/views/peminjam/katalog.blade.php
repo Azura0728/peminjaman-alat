@@ -21,8 +21,12 @@
             <div class="mt-2 flex items-center justify-between">
                 <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Stok: {{ $alat->stok }}</span>
             </div>
+            <a href="{{ route('peminjam.alat.show', $alat->id) }}"
+                class="mt-3 w-full border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 rounded-lg transition text-center">
+                Detail
+            </a>
             <button type="button" onclick="document.getElementById('modal-{{ $alat->id }}').classList.remove('hidden')"
-                class="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 rounded-lg transition">
+                class="mt-2 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 rounded-lg transition">
                 Ajukan Pinjam
             </button>
         </div>

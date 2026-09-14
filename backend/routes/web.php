@@ -88,6 +88,7 @@ Route::middleware(['auth', 'role:petugas,admin'])->prefix('petugas')->name('petu
 //peminjam
 Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam.')->group(function () {
     Route::get('/katalog', [PeminjamController::class, 'katalogAlat'])->name('katalog');
+    Route::get('/alat/{id}', [PeminjamController::class, 'detailAlat'])->name('alat.show');
     Route::post('/ajukan', [PeminjamController::class, 'ajukanPeminjaman'])->name('ajukan');
     Route::get('/riwayat', [PeminjamController::class, 'riwayatPeminjaman'])->name('riwayat');
     Route::post('/pengembalian/{id}/ajukan', [PeminjamController::class, 'ajukanPengembalian'])->name('pengembalian.ajukan');

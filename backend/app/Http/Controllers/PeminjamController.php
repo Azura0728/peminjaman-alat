@@ -29,6 +29,13 @@ class PeminjamController extends Controller
         return view('peminjam.katalog', compact('alats', 'search'));
     }
 
+    public function detailAlat($id)
+    {
+        $alat = Alat::with('kategori')->findOrFail($id);
+
+        return view('peminjam.detail-alat', compact('alat'));
+    }
+
     public function ajukanPeminjaman(Request $request)
     {
         $request->validate([
