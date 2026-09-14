@@ -40,3 +40,42 @@ Clone repository:
 
 ```bash
 git clone https://github.com/Azura0728/peminjaman-alat.git
+
+Masuk ke folder project
+
+Jalankan container:
+
+docker compose up -d
+
+Masuk ke container Laravel:
+
+docker compose exec app bash
+
+Install dependency:
+
+composer install
+
+Salin file environment:
+
+cp .env.example .env
+
+Generate application key:
+
+php artisan key:generate
+
+Jalankan migration:
+
+php artisan migrate
+
+Setelah itu aplikasi dapat dijalankan sesuai konfigurasi Docker pada project.
+
+Struktur Project
+
+peminjaman-alat/
+├── backend/            # Source code Laravel
+├── public/             # File publik project
+└── docker-compose.yml  # Konfigurasi Docker
+
+Author
+
+Azura Fatih Al Ansyori
