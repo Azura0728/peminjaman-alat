@@ -75,9 +75,6 @@ Route::middleware(['auth', 'role:petugas,admin'])->prefix('petugas')->name('petu
     Route::get('/peminjaman', [PetugasController::class, 'indexPeminjaman'])->name('peminjaman.index');
     Route::post('/peminjaman/{id}/setujui', [PetugasController::class, 'setujuiPeminjaman'])->name('peminjaman.setujui');
     Route::post('/peminjaman/{id}/tolak', [PetugasController::class, 'tolakPeminjaman'])->name('peminjaman.tolak');
-
-    // Pengembalian (route tetap ada, walau belum ada halaman UI tersendiri sekarang)
-    Route::post('/pengembalian/{peminjamanId}/proses', [PetugasController::class, 'prosesPengembalian'])->name('pengembalian.proses');
     
     // Pemantauan Pengembalian
     Route::get('/pengembalian', [PetugasController::class, 'indexPengembalian'])->name('pengembalian.index');
@@ -96,12 +93,6 @@ Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam
     Route::post('/pengembalian/{id}/ajukan', [PeminjamController::class, 'ajukanPengembalian'])->name('pengembalian.ajukan');
 });
 
-
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profil', [ProfilController::class, 'edit'])->name('profil.edit');
-    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
-});
 
 // Route Profil (Harus sudah login)
 Route::middleware('auth')->group(function () {
