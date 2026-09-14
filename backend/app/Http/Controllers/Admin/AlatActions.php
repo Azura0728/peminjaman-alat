@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Alat;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 trait AlatActions
 {
@@ -31,7 +32,8 @@ trait AlatActions
     // 2. Menampilkan form tambah alat
     public function createAlat()
     {
-        $kategoris = Kategori::all();
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
         return view('admin.alat.create', compact('kategoris'));
     }
 
@@ -40,14 +42,24 @@ trait AlatActions
     {
         $request->validate([
             'nama_alat' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategori,id',
+            'kategori' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('kategori', 'nama_kategori'),
+            ],
             'stok' => 'required|integer|min:0',
             'status_kondisi' => 'required|string|max:100',
             'deskripsi' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'kategori.exists' => 'Kategori tidak tersedia. Pilih kategori dari rekomendasi yang ada.',
         ]);
 
-        $data = $request->all();
+        $kategori = Kategori::where('nama_kategori', $request->kategori)->firstOrFail();
+
+        $data = $request->except('kategori');
+        $data['kategori_id'] = $kategori->id;
 
         // Handle Upload Gambar jika ada
         if ($request->hasFile('gambar')) {
@@ -67,7 +79,7 @@ trait AlatActions
     public function editAlat($id)
     {
         $alat = Alat::findOrFail($id);
-        $kategoris = Kategori::all();
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
 
         return view('admin.alat.edit', compact('alat', 'kategoris'));
     }
@@ -79,14 +91,24 @@ trait AlatActions
 
         $request->validate([
             'nama_alat' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategori,id',
+            'kategori' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('kategori', 'nama_kategori'),
+            ],
             'stok' => 'required|integer|min:0',
             'status_kondisi' => 'required|string|max:100',
             'deskripsi' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'kategori.exists' => 'Kategori tidak tersedia. Pilih kategori dari rekomendasi yang ada.',
         ]);
 
-        $data = $request->all();
+        $kategori = Kategori::where('nama_kategori', $request->kategori)->firstOrFail();
+
+        $data = $request->except('kategori');
+        $data['kategori_id'] = $kategori->id;
 
         // Handle Update Gambar jika ada file baru
         if ($request->hasFile('gambar')) {
