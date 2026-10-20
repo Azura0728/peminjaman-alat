@@ -97,14 +97,25 @@ trait PeminjamanActions
         }
     }
 
-    // 4. Memperbarui status peminjaman (Misal: dari diajukan -> dipinjam / selesai)
+    // 4. Memperbarui status peminjaman
     public function updateStatusPeminjaman(Request $request, $id)
     {
         $peminjaman = Peminjaman::with('detailPinjams.alat')->findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:diajukan,dipinjam,selesai,telat',
+            'status' => 'required|in:diajukan,dipinjam,telat',
         ]);
+
+        $alatTidakTersedia = $peminjaman->detailPinjams->isEmpty()
+            || $peminjaman->detailPinjams->contains(fn (DetailPinjam $detail) => $detail->alat === null);
+
+        if ($peminjaman->status === 'selesai'
+            && $alatTidakTersedia
+            && $request->status !== $peminjaman->status) {
+            return redirect()
+                ->route('admin.peminjaman.index')
+                ->with('error', 'Status peminjaman selesai tidak dapat diubah karena alat sudah tidak tersedia.');
+        }
 
         DB::beginTransaction();
 
@@ -112,8 +123,11 @@ trait PeminjamanActions
             $statusLama = $peminjaman->status;
             $statusBaru = $request->status;
 
-            // Logika pengelolaan stok otomatis
-            if ($statusLama != 'dipinjam' && $statusBaru == 'dipinjam') {
+            // Stok ditahan selama peminjaman berstatus dipinjam atau telat.
+            $statusStokDitahan = ['dipinjam', 'telat'];
+
+            if (! in_array($statusLama, $statusStokDitahan, true)
+                && in_array($statusBaru, $statusStokDitahan, true)) {
                 // Kurangi stok karena barang resmi dipinjam
                 foreach ($peminjaman->detailPinjams as $detail) {
                     $alat = $detail->alat;
@@ -124,8 +138,9 @@ trait PeminjamanActions
 
                     $alat->decrement('stok', $detail->jumlah);
                 }
-            } elseif ($statusLama == 'dipinjam' && $statusBaru == 'selesai') {
-                // Kembalikan stok karena barang sudah dikembalikan (selesai)
+            } elseif (in_array($statusLama, $statusStokDitahan, true)
+                && ! in_array($statusBaru, $statusStokDitahan, true)) {
+                // Kembalikan stok saat peminjaman tidak lagi aktif.
                 foreach ($peminjaman->detailPinjams as $detail) {
                     $detail->alat->increment('stok', $detail->jumlah);
                 }
@@ -150,11 +165,10 @@ trait PeminjamanActions
     {
         $peminjaman = Peminjaman::with('detailPinjams')->findOrFail($id);
 
-        // Jika statusnya sedang dipinjam, kembalikan stok terlebih dahulu sebelum dihapus
-        if ($peminjaman->status == 'dipinjam') {
-            foreach ($peminjaman->detailPinjams as $detail) {
-                $detail->alat->increment('stok', $detail->jumlah);
-            }
+        if (in_array($peminjaman->status, ['dipinjam', 'telat'], true)) {
+            return redirect()
+                ->route('admin.peminjaman.index')
+                ->with('error', 'Peminjaman yang masih aktif tidak dapat dihapus.');
         }
 
         $peminjaman->delete();

@@ -87,6 +87,11 @@ trait UserActions
     public function destroyUser($id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->is(auth()->user())) {
+            return redirect()->route('admin.users.index')->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');

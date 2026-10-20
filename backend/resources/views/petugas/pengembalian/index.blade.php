@@ -47,9 +47,11 @@
                             @endif
                         </td>
                         <td class="py-3 px-4 border-b">
-                            @foreach($item->detailPinjams as $d)
-                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">{{ $d->alat->nama_alat ?? '-' }} ({{ $d->jumlah }} pcs)</span>
-                            @endforeach
+                            @forelse($item->detailPinjams as $d)
+                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">{{ $d->alat->nama_alat ?? 'alat tidak tersedia' }} ({{ $d->jumlah }} pcs)</span>
+                            @empty
+                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">alat tidak tersedia</span>
+                            @endforelse
                         </td>
                         <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan }}</td>
                         <td class="py-3 px-4 border-b">
@@ -128,9 +130,11 @@
                     <tr class="hover:bg-gray-50 transition">
                         <td class="py-3 px-4 border-b font-medium">{{ $p->peminjaman->user->name ?? '-' }}</td>
                         <td class="py-3 px-4 border-b">
-                            @foreach($p->peminjaman->detailPinjams as $d)
-                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">{{ $d->alat->nama_alat ?? '-' }}</span>
-                            @endforeach
+                            @forelse($p->peminjaman->detailPinjams as $d)
+                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">{{ $d->alat->nama_alat ?? 'alat tidak tersedia' }}</span>
+                            @empty
+                                <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">alat tidak tersedia</span>
+                            @endforelse
                         </td>
                         <td class="py-3 px-4 border-b">{{ $p->tgl_kembali }}</td>
                         <td class="py-3 px-4 border-b">

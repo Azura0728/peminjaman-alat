@@ -104,10 +104,11 @@ class PetugasController extends Controller
 
             $peminjaman->update(['status' => 'selesai']);
 
-            foreach ($peminjaman->detailPinjams as $detail) {
-                $alat = Alat::findOrFail($detail->alat_id);
-                $alat->stok += $detail->jumlah;
-                $alat->save();
+            if (strcasecmp(trim($request->kondisi_kembali), 'Hilang') !== 0) {
+                foreach ($peminjaman->detailPinjams as $detail) {
+                    $alat = Alat::findOrFail($detail->alat_id);
+                    $alat->increment('stok', $detail->jumlah);
+                }
             }
 
             DB::commit();

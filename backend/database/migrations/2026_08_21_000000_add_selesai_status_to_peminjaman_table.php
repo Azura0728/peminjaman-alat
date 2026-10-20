@@ -2,20 +2,42 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE peminjaman MODIFY status ENUM('diajukan', 'dipinjam', 'dikembalikan', 'selesai', 'telat') NOT NULL DEFAULT 'diajukan'");
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
+        DB::statement("
+            ALTER TABLE peminjaman
+            MODIFY status ENUM(
+                'diajukan',
+                'dipinjam',
+                'dikembalikan',
+                'selesai',
+                'telat'
+            ) NOT NULL DEFAULT 'diajukan'
+        ");
     }
 
     public function down(): void
     {
-        DB::table('peminjaman')
-            ->where('status', 'selesai')
-            ->update(['status' => 'dikembalikan']);
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
 
-        DB::statement("ALTER TABLE peminjaman MODIFY status ENUM('diajukan', 'dipinjam', 'dikembalikan', 'telat') NOT NULL DEFAULT 'diajukan'");
+        DB::statement("
+            ALTER TABLE peminjaman
+            MODIFY status ENUM(
+                'diajukan',
+                'dipinjam',
+                'dikembalikan',
+                'telat'
+            ) NOT NULL DEFAULT 'diajukan'
+        ");
     }
 };

@@ -117,6 +117,14 @@
                          alt="Preview"
                          class="w-16 h-16 object-cover rounded-lg border">
                 </div>
+                <label class="mb-3 flex items-center text-sm text-red-600">
+                    <input type="checkbox"
+                           name="hapus_gambar"
+                           value="1"
+                           @checked(old('hapus_gambar'))
+                           class="mr-2 rounded border-gray-300 text-red-600 focus:ring-red-500">
+                    Hapus foto (Terhapus saat Diperbarui)
+                </label>
             @endif
 
             <input type="file"
