@@ -11,7 +11,7 @@
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="grid md:grid-cols-2">
-        <div class="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+        <div class="aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden md:aspect-square">
             @if($alat->gambar)
                 <img src="{{ asset($alat->gambar) }}" alt="{{ $alat->nama_alat }}" class="w-full h-full object-cover">
             @else
@@ -19,7 +19,7 @@
             @endif
         </div>
 
-        <div class="p-6 flex flex-col">
+        <div class="p-4 flex flex-col sm:p-6">
             <p class="text-sm text-gray-500">{{ $alat->kategori->nama_kategori ?? '-' }}</p>
             <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $alat->nama_alat }}</h1>
 

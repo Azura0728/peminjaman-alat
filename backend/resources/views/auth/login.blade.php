@@ -8,10 +8,10 @@
     <!-- Memuat Tailwind CSS melalui CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gray-100 flex min-h-screen items-center justify-center p-4">
 
     <!-- Card Container -->
-    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm sm:p-8">
 
         <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">
             Login Sistem
@@ -21,6 +21,12 @@
         @if(session('error'))
             <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
                 {{ session('error') }}
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+                {{ session('success') }}
             </div>
         @endif
 
@@ -72,6 +78,11 @@
                 Masuk
             </button>
         </form>
+
+        <p class="mt-5 text-center text-sm text-gray-600">
+            Belum punya akun?
+            <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:underline">Daftar di sini</a>
+        </p>
 
     </div>
 

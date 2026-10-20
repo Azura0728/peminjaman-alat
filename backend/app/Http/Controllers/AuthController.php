@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,6 +43,24 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ])->onlyInput('email');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => 'peminjam',
+        ]);
+
+        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan masuk.');
     }
 
     // Proses Logout

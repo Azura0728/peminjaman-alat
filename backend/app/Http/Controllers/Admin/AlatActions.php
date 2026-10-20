@@ -15,6 +15,7 @@ trait AlatActions
         $search = $request->input('search');
 
         $alats = Alat::with('kategori')
+            ->withExists('detailPinjamsAktif as sedang_dipinjam')
             ->when($search, function ($query, $search) {
                 return $query->where('nama_alat', 'like', "%{$search}%")
                     ->orWhere('status_kondisi', 'like', "%{$search}%")
@@ -140,6 +141,11 @@ trait AlatActions
     public function destroyAlat($id)
     {
         $alat = Alat::findOrFail($id);
+
+        if ($alat->detailPinjamsAktif()->exists()) {
+            return redirect()->route('admin.alat.index')
+                ->with('error', 'Alat tidak dapat dihapus karena masih sedang dipinjam.');
+        }
 
         // Hapus file gambar fisik jika ada
         if ($alat->gambar && file_exists(public_path($alat->gambar))) {

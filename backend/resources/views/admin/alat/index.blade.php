@@ -10,6 +10,11 @@
         {{ session('success') }}
     </div>
 @endif
+@if(session('error'))
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
+        {{ session('error') }}
+    </div>
+@endif
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
     <div class="p-5 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -113,17 +118,26 @@
                                     Edit
                                 </a>
 
-                                <form action="{{ route('admin.alat.destroy', $alat->id) }}"
-                                      method="POST"
-                                      onsubmit="return confirm('Yakin ingin menghapus alat ini?')">
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="submit"
-                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
+                                @if($alat->sedang_dipinjam)
+                                    <button type="button"
+                                            disabled
+                                            title="Tidak dapat dihapus karena sedang dipinjam"
+                                            class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded text-xs font-semibold cursor-not-allowed">
                                         Hapus
                                     </button>
-                                </form>
+                                @else
+                                    <form action="{{ route('admin.alat.destroy', $alat->id) }}"
+                                          method="POST"
+                                          onsubmit="return confirm('Yakin ingin menghapus alat ini?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @endif
 
                             </div>
                         </td>

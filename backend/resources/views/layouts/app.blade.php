@@ -14,11 +14,22 @@
         main { padding: 0 !important; }
         .print-header { display: block !important; }
     }
+    @media (max-width: 767px) {
+        main table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+        }
+        main table th,
+        main table td {
+            white-space: nowrap;
+        }
+    }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen flex-col md:h-screen md:flex-row md:overflow-hidden">
 
         <!-- SIDEBAR -->
         <aside class="w-64 bg-gray-900 text-white flex flex-col hidden md:flex">
@@ -114,15 +125,37 @@
         </aside>
 
         <!-- MAIN CONTENT CONTAINER -->
-        <div class="flex-1 flex flex-col overflow-y-auto">
+        <div class="flex min-w-0 flex-1 flex-col md:overflow-y-auto">
 
             <!-- NAVBAR ATAS -->
-            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
-                <div class="text-lg font-semibold text-gray-800">
+            <header class="bg-white shadow-sm min-h-16 flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:flex-nowrap md:px-6 md:py-0 z-10">
+                <div class="min-w-0 text-base font-semibold text-gray-800 md:text-lg">
                     @yield('header-title', 'Dashboard')
                 </div>
 
-                <div>
+                <div class="flex items-center gap-2">
+                    <details class="relative md:hidden">
+                        <summary class="cursor-pointer list-none rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700">
+                            Menu
+                        </summary>
+                        <nav class="absolute right-0 z-20 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                            @if(auth()->user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                                <a href="{{ route('admin.alat.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Kelola Alat</a>
+                                <a href="{{ route('admin.users.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Kelola User</a>
+                                <a href="{{ route('admin.kategori.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Kelola Kategori</a>
+                                <a href="{{ route('admin.peminjaman.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Kelola Peminjaman</a>
+                                <a href="{{ route('admin.pengembalian.menunggu') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Menunggu Pengembalian</a>
+                                <a href="{{ route('admin.pengembalian.riwayat') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Riwayat Pengembalian</a>
+                            @elseif(auth()->user()->role === 'petugas')
+                                <a href="{{ route('petugas.dashboard') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                                <a href="{{ route('petugas.peminjaman.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Persetujuan Peminjaman</a>
+                                <a href="{{ route('petugas.pengembalian.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Pemantauan Pengembalian</a>
+                                <a href="{{ route('petugas.laporan.index') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Cetak Laporan</a>
+                            @endif
+                            <a href="{{ route('profil.edit') }}" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
+                        </nav>
+                    </details>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit"
@@ -134,7 +167,7 @@
             </header>
 
             <!-- KONTEN UTAMA HALAMAN -->
-            <main class="flex-1 p-6">
+            <main class="min-w-0 flex-1 p-4 md:p-6">
                 @yield('content')
             </main>
 
