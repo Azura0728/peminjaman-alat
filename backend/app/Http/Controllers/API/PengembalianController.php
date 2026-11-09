@@ -71,12 +71,13 @@ class PengembalianController extends Controller
                 // 2. Ubah status di tabel peminjaman utama 
                 $peminjaman->update(['status' => $statusPeminjamanBaru]); 
  
-                // 3. Kembalikan (tambah) stok alat berdasarkan detail_pinjam 
-                foreach ($peminjaman->detailPinjams as $detail) { 
-                    $alat = Alat::lockForUpdate()->find($detail->alat_id); 
-                    // increment() otomatis menambah nilai pada field yang ditentukan 
-                    $alat->increment('stok', $detail->jumlah); 
-                } 
+                // Barang hilang tidak dikembalikan ke stok.
+                if (strcasecmp(trim($request->kondisi_kembali), 'Hilang') !== 0) {
+                    foreach ($peminjaman->detailPinjams as $detail) {
+                        $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id);
+                        $alat->increment('stok', $detail->jumlah);
+                    }
+                }
  
  
  
@@ -120,17 +121,45 @@ class PengembalianController extends Controller
 
      public function update(UpdatePengembalianRequest $request, Pengembalian $pengembalian): JsonResponse 
     { 
-        // Mengamankan data dengan membatasi field yang boleh dikoreksi petugas 
-        $pengembalian->update([ 
-            'kondisi_kembali' => $request->kondisi_kembali, 
-            'denda' => $request->denda ?? $pengembalian->denda, 
-        ]); 
- 
-        return response()->json([ 
-            'message' => 'Data pengembalian berhasil diperbarui.', 
-            'data' => $pengembalian->load(['peminjaman.user', 'petugas']) 
-        ]); 
-    } 
+         try {
+             $pengembalian = DB::transaction(function () use ($request, $pengembalian) {
+                 $pengembalian = Pengembalian::with('peminjaman.detailPinjams')
+                     ->lockForUpdate()
+                     ->findOrFail($pengembalian->id);
+                 $kondisiSebelumnyaHilang = strcasecmp(trim($pengembalian->kondisi_kembali), 'Hilang') === 0;
+                 $kondisiBaruHilang = strcasecmp(trim($request->kondisi_kembali), 'Hilang') === 0;
+
+                 if ($kondisiSebelumnyaHilang !== $kondisiBaruHilang) {
+                     foreach ($pengembalian->peminjaman->detailPinjams as $detail) {
+                         $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id);
+
+                         if ($kondisiBaruHilang) {
+                             if ($alat->stok < $detail->jumlah) {
+                                 throw new Exception("Stok alat '{$alat->nama_alat}' saat ini tidak mencukupi untuk mengoreksi kondisi pengembalian menjadi hilang.");
+                             }
+                             $alat->decrement('stok', $detail->jumlah);
+                         } else {
+                             $alat->increment('stok', $detail->jumlah);
+                         }
+                     }
+                 }
+
+                 $pengembalian->update([
+                     'kondisi_kembali' => $request->kondisi_kembali,
+                     'denda' => $request->denda ?? $pengembalian->denda,
+                 ]);
+
+                 return $pengembalian;
+             });
+         } catch (Exception $e) {
+             return response()->json(['message' => $e->getMessage()], 422);
+         }
+
+         return response()->json([
+             'message' => 'Data pengembalian berhasil diperbarui.',
+             'data' => $pengembalian->load(['peminjaman.user', 'petugas'])
+         ]);
+    }
 
      public function destroy(Pengembalian $pengembalian): JsonResponse 
     { 
@@ -139,15 +168,17 @@ class PengembalianController extends Controller
                 $peminjaman = Peminjaman::with('detailPinjams')->lockForUpdate()->findOrFail($pengembalian->peminjaman_id); 
  
                 // Tarik kembali stok ke gudang (karena status kembali dibatalkan, stok berkurang lagi) 
-                foreach ($peminjaman->detailPinjams as $detail) { 
-                    $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id); 
-                    
-                    if ($alat->stok < $detail->jumlah) { 
-                        throw new Exception("Gagal membatalkan pengembalian. Stok alat '{$alat->nama_alat}' saat ini tidak mencukupi untuk ditarik kembali."); 
-                    } 
-                    
-                    $alat->decrement('stok', $detail->jumlah); 
-                } 
+                if (strcasecmp(trim($pengembalian->kondisi_kembali), 'Hilang') !== 0) {
+                    foreach ($peminjaman->detailPinjams as $detail) {
+                        $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id);
+
+                        if ($alat->stok < $detail->jumlah) {
+                            throw new Exception("Gagal membatalkan pengembalian. Stok alat '{$alat->nama_alat}' saat ini tidak mencukupi untuk ditarik kembali.");
+                        }
+
+                        $alat->decrement('stok', $detail->jumlah);
+                    }
+                }
  
                 // Kembalikan status peminjaman master menjadi dipinjam kembali 
                 $peminjaman->update(['status' => 'dipinjam']); 

@@ -49,7 +49,7 @@ docker compose up -d
 
 Masuk ke container Laravel:
 
-docker compose exec app bash
+docker compose exec app-laravel bash
 
 Install dependency:
 

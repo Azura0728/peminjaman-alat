@@ -62,12 +62,14 @@
                         </td>
                         <td class="py-3 px-4 border-b">
                             <ul class="list-disc list-inside space-y-1">
-                                @foreach($peminjaman->detailPinjams as $detail)
+                                @forelse($peminjaman->detailPinjams as $detail)
                                     <li>
-                                        <span class="font-semibold">{{ $detail->alat->nama_alat ?? 'Alat Dihapus' }}</span>
+                                        <span class="font-semibold">{{ $detail->alat->nama_alat ?? 'alat tidak tersedia' }}</span>
                                         <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">({{ $detail->jumlah }} pcs)</span>
                                     </li>
-                                @endforeach
+                                @empty
+                                    <li>alat tidak tersedia</li>
+                                @endforelse
                             </ul>
                         </td>
                         <td class="py-3 px-4 border-b text-xs text-gray-600">
@@ -86,25 +88,32 @@
                         <td class="py-3 px-4 border-b">
                             <div class="flex flex-col space-y-2">
                                 <!-- Form Ubah Status Cepat -->
-                                <form action="{{ route('admin.peminjaman.updateStatus', $peminjaman->id) }}" method="POST" class="flex items-center space-x-1">
-                                    @csrf
-                                    @method('PUT')
-                                    <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none">
-                                        <option value="diajukan" {{ $peminjaman->status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                        <option value="dipinjam" {{ $peminjaman->status == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                                        <option value="selesai" {{ $peminjaman->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                        <option value="telat" {{ $peminjaman->status == 'telat' ? 'selected' : '' }}>Telat</option>
-                                    </select>
-                                </form>
+                                @if($peminjaman->status === 'selesai')
+                                    <span class="text-xs text-gray-500 text-center">Pengembalian telah diproses</span>
+                                @else
+                                    <form action="{{ route('admin.peminjaman.updateStatus', $peminjaman->id) }}" method="POST" class="flex items-center space-x-1">
+                                        @csrf
+                                        @method('PUT')
+                                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none">
+                                            <option value="diajukan" {{ $peminjaman->status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                            <option value="dipinjam" {{ $peminjaman->status == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                            <option value="telat" {{ $peminjaman->status == 'telat' ? 'selected' : '' }}>Telat</option>
+                                        </select>
+                                    </form>
+                                @endif
 
-                                <!-- Tombol Hapus -->
-                                <form action="{{ route('admin.peminjaman.destroy', $peminjaman->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data peminjaman ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold transition w-full">
-                                        Hapus
-                                    </button>
-                                </form>
+                                @if(in_array($peminjaman->status, ['dipinjam', 'telat'], true))
+                                    <span class="text-xs text-gray-500 text-center">Tidak dapat dihapus saat aktif</span>
+                                @else
+                                    <!-- Tombol Hapus -->
+                                    <form action="{{ route('admin.peminjaman.destroy', $peminjaman->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data peminjaman ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold transition w-full">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

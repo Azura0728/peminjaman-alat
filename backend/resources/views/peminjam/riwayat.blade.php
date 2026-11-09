@@ -1,14 +1,14 @@
 @extends('layouts.peminjam')
 
-@section('title', 'Pesanan Saya')
+@section('title', 'Peminjaman Saya')
 
 @section('content')
-<h2 class="text-lg font-bold text-gray-800 mb-4">Pesanan Saya</h2>
+<h2 class="text-lg font-bold text-gray-800 mb-4">Peminjaman Saya</h2>
 
-<div class="flex gap-2 mb-4 border-b border-gray-200">
+<div class="mb-4 flex gap-2 overflow-x-auto border-b border-gray-200">
     @foreach(['semua' => 'Semua', 'diajukan' => 'Diajukan', 'dipinjam' => 'Dipinjam', 'selesai' => 'Selesai'] as $key => $label)
         <a href="{{ route('peminjam.riwayat', ['tab' => $key]) }}"
-           class="px-4 py-2 text-sm font-semibold border-b-2 transition {{ $tab == $key ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-800' }}">
+           class="shrink-0 px-3 py-2 text-sm font-semibold border-b-2 transition sm:px-4 {{ $tab == $key ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-800' }}">
             {{ $label }}
         </a>
     @endforeach
@@ -37,7 +37,7 @@
             @endforeach
         </div>
 
-        <div class="border-t border-gray-100 mt-2 pt-2 flex justify-between items-center text-xs text-gray-500">
+        <div class="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-3 text-xs text-gray-500 sm:flex-row sm:justify-between sm:items-center">
             <span>Rencana kembali: {{ $item->tgl_kembali_plan }}</span>
 
             @if($item->status == 'dipinjam')

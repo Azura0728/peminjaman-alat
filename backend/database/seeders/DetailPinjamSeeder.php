@@ -3,7 +3,7 @@ namespace Database\Seeders;
 use App\Models\DetailPinjam; 
 use Illuminate\Database\Seeder; 
  
-class detailPinjamseeder extends Seeder 
+class DetailPinjamSeeder extends Seeder 
 { 
     public function run(): void 
     { 

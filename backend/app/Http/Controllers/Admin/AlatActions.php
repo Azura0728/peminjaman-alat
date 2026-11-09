@@ -15,6 +15,7 @@ trait AlatActions
         $search = $request->input('search');
 
         $alats = Alat::with('kategori')
+            ->withExists('detailPinjamsAktif as sedang_dipinjam')
             ->when($search, function ($query, $search) {
                 return $query->where('nama_alat', 'like', "%{$search}%")
                     ->orWhere('status_kondisi', 'like', "%{$search}%")
@@ -101,13 +102,14 @@ trait AlatActions
             'status_kondisi' => 'required|string|max:100',
             'deskripsi' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'hapus_gambar' => 'nullable|boolean',
         ], [
             'kategori.exists' => 'Kategori tidak tersedia. Pilih kategori dari rekomendasi yang ada.',
         ]);
 
         $kategori = Kategori::where('nama_kategori', $request->kategori)->firstOrFail();
 
-        $data = $request->except('kategori');
+        $data = $request->except(['kategori', 'hapus_gambar']);
         $data['kategori_id'] = $kategori->id;
 
         // Handle Update Gambar jika ada file baru
@@ -121,6 +123,12 @@ trait AlatActions
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('storage/alat'), $filename);
             $data['gambar'] = 'storage/alat/' . $filename;
+        } elseif ($request->boolean('hapus_gambar')) {
+            if ($alat->gambar && file_exists(public_path($alat->gambar))) {
+                unlink(public_path($alat->gambar));
+            }
+
+            $data['gambar'] = null;
         }
 
         $alat->update($data);
@@ -133,6 +141,11 @@ trait AlatActions
     public function destroyAlat($id)
     {
         $alat = Alat::findOrFail($id);
+
+        if ($alat->detailPinjamsAktif()->exists()) {
+            return redirect()->route('admin.alat.index')
+                ->with('error', 'Alat tidak dapat dihapus karena masih sedang dipinjam.');
+        }
 
         // Hapus file gambar fisik jika ada
         if ($alat->gambar && file_exists(public_path($alat->gambar))) {

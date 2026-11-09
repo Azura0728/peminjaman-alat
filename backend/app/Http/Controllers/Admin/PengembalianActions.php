@@ -79,10 +79,11 @@ trait PengembalianActions
 
             $peminjaman->update(['status' => 'selesai']);
 
-            foreach ($peminjaman->detailPinjams as $detail) {
-                $alat = Alat::findOrFail($detail->alat_id);
-                $alat->stok += $detail->jumlah;
-                $alat->save();
+            if (strcasecmp(trim($request->kondisi_kembali), 'Hilang') !== 0) {
+                foreach ($peminjaman->detailPinjams as $detail) {
+                    $alat = Alat::findOrFail($detail->alat_id);
+                    $alat->increment('stok', $detail->jumlah);
+                }
             }
 
             DB::commit();
@@ -100,7 +101,7 @@ trait PengembalianActions
         return view('admin.pengembalian.edit', compact('pengembalian'));
     }
 
-    // Update kondisi/denda (koreksi data, TIDAK mengubah stok karena barang sudah kembali)
+    // Update kondisi/denda dan sesuaikan stok bila kondisi berubah menjadi atau dari hilang.
     public function updatePengembalian(Request $request, $id)
     {
         $request->validate([
@@ -108,11 +109,39 @@ trait PengembalianActions
             'denda' => 'nullable|integer|min:0',
         ]);
 
-        $pengembalian = Pengembalian::findOrFail($id);
-        $pengembalian->update([
-            'kondisi_kembali' => $request->kondisi_kembali,
-            'denda' => $request->denda ?? 0,
-        ]);
+        DB::beginTransaction();
+        try {
+            $pengembalian = Pengembalian::with('peminjaman.detailPinjams')
+                ->lockForUpdate()
+                ->findOrFail($id);
+            $kondisiSebelumnyaHilang = strcasecmp(trim($pengembalian->kondisi_kembali), 'Hilang') === 0;
+            $kondisiBaruHilang = strcasecmp(trim($request->kondisi_kembali), 'Hilang') === 0;
+
+            if ($kondisiSebelumnyaHilang !== $kondisiBaruHilang) {
+                foreach ($pengembalian->peminjaman->detailPinjams as $detail) {
+                    $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id);
+
+                    if ($kondisiBaruHilang) {
+                        if ($alat->stok < $detail->jumlah) {
+                            throw new \Exception("Stok alat '{$alat->nama_alat}' tidak cukup untuk mengoreksi kondisi pengembalian menjadi hilang.");
+                        }
+                        $alat->decrement('stok', $detail->jumlah);
+                    } else {
+                        $alat->increment('stok', $detail->jumlah);
+                    }
+                }
+            }
+
+            $pengembalian->update([
+                'kondisi_kembali' => $request->kondisi_kembali,
+                'denda' => $request->denda ?? 0,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.pengembalian.riwayat')->with('success', 'Data pengembalian berhasil diperbarui.');
     }
@@ -125,12 +154,14 @@ trait PengembalianActions
             $pengembalian = Pengembalian::with('peminjaman.detailPinjams')->findOrFail($id);
             $peminjaman = $pengembalian->peminjaman;
 
-            foreach ($peminjaman->detailPinjams as $detail) {
-                $alat = Alat::findOrFail($detail->alat_id);
-                if ($alat->stok < $detail->jumlah) {
-                    throw new \Exception("Stok alat '{$alat->nama_alat}' tidak cukup untuk membatalkan pengembalian ini.");
+            if (strcasecmp(trim($pengembalian->kondisi_kembali), 'Hilang') !== 0) {
+                foreach ($peminjaman->detailPinjams as $detail) {
+                    $alat = Alat::findOrFail($detail->alat_id);
+                    if ($alat->stok < $detail->jumlah) {
+                        throw new \Exception("Stok alat '{$alat->nama_alat}' tidak cukup untuk membatalkan pengembalian ini.");
+                    }
+                    $alat->decrement('stok', $detail->jumlah);
                 }
-                $alat->decrement('stok', $detail->jumlah);
             }
 
             $peminjaman->update(['status' => 'dipinjam']);

@@ -31,7 +31,7 @@
 
         <div class="mb-4">
             <label for="role" class="block text-gray-700 font-semibold mb-2">Role / Hak Akses</label>
-            <select name="role" id="role" required class= "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500>
+            <select name="role" id="role" required class= "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="peminjam">Peminjam</option>
                 <option value="petugas">Petugas</option>
                 <option value="admin">Admin</option>
@@ -41,7 +41,7 @@
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-semibold mb-2">No. Hp (Opsional)</label>
             <input type="text" name="no_hp" value="{{ old('no_hp') }}"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500>
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="flex justify-end space-x-2">

@@ -35,6 +35,13 @@ class Alat extends Model
         return $this->hasMany(DetailPinjam::class);
     }
 
+    public function detailPinjamsAktif(): HasMany
+    {
+        return $this->detailPinjams()->whereHas('peminjaman', function (Builder $query) {
+            $query->whereIn('status', ['dipinjam', 'telat']);
+        });
+    }
+
     public function scopeTersedia(Builder $query): Builder
 {
     return $query

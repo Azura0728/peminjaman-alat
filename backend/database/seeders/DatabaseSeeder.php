@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
             KategoriSeeder::class, 
             AlatSeeder::class, 
             PeminjamanSeeder::class, 
-            detailPinjamseeder::class, 
+            DetailPinjamSeeder::class, 
             PengembalianSeeder::class, 
         ]); 
     } 
